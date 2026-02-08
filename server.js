@@ -2,13 +2,16 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const cors = require('cors')
 
 const app = express();
 const PORT = 3000;
 
 // Trust proxy (important for real IP detection)
 app.set('trust proxy', true);
-
+const wafRoutes = require("./waf_analyzer/routes/wafRoutes");
+app.use("/api/waf", wafRoutes);
+app.use(cors())
 // Middleware FIRST
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
