@@ -1,9 +1,7 @@
 const { logAttack } = require('./logger')
 const { getSeverity } = require('./severity')
 
-/* =======================
-   ATTACK PATTERNS
-======================= */
+
 const sqlPatterns = [
   /(\%27)|(\')|(\-\-)|(\%23)|(#)/i,
   /\bOR\b.+\=/i,
@@ -13,9 +11,6 @@ const sqlPatterns = [
 
 const xssPattern = /<[^>]+>/i
 
-/* =======================
-   BRUTE FORCE TRACKER
-======================= */
 const failedAttempts = {}
 
 function recordFailure(ip) {
@@ -33,9 +28,7 @@ function recordFailure(ip) {
   return failedAttempts[ip].length >= 5
 }
 
-/* =======================
-   WAF MIDDLEWARE
-======================= */
+
 module.exports = function waf(req, res, next) {
   const ip =
     req.headers['x-forwarded-for'] ||
@@ -51,7 +44,6 @@ module.exports = function waf(req, res, next) {
     headers: req.headers
   })
 
-  /* ---------- SQL INJECTION ---------- */
   for (const pattern of sqlPatterns) {
     if (pattern.test(payload)) {
       const attackType = 'SQL_INJECTION'
@@ -72,7 +64,6 @@ module.exports = function waf(req, res, next) {
     }
   }
 
-  /* ---------- XSS ---------- */
   if (xssPattern.test(payload)) {
     const attackType = 'XSS'
     const severity = getSeverity(attackType)
@@ -91,7 +82,6 @@ module.exports = function waf(req, res, next) {
     return res.status(403).send('🚫 XSS Attempt Blocked')
   }
 
-  /* ---------- BRUTE FORCE (AFTER RESPONSE) ---------- */
   res.on('finish', () => {
     if (req.path === '/login' && res.statusCode === 401) {
       if (recordFailure(ip)) {
