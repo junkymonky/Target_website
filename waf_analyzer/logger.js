@@ -1,14 +1,12 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Explicit DB path (avoids silent DB creation bugs)
 const dbPath = path.join(__dirname, 'waf.db');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error('❌ WAF DB Error:', err);
   else console.log('✅ WAF database connected');
 });
 
-// Create table ONCE
 db.run(`
   CREATE TABLE IF NOT EXISTS waf_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,7 +22,6 @@ db.run(`
   if (err) console.error('❌ Table creation error:', err);
 });
 
-// Logger function
 function logAttack({ ip, attackType, severity, endpoint, payload, userAgent }) {
   const query = `
     INSERT INTO waf_logs 
